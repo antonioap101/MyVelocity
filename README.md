@@ -85,6 +85,6 @@ After completion, you can download the APK from Expo.
 ---
 
 ## 🏷️ **License**
-This project is licensed under the MIT License. 
+This project is licensed under the GNU General Public License v3.0 License. See the [LICENSE](LICENSE) file for details.
 
 
