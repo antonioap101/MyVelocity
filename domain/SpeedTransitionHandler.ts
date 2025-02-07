@@ -1,7 +1,7 @@
 // Manejador para la lógica de transiciones con banda muerta
-import {SpeedState} from "@/app/domain/speedState";
-import {SpeedSensor} from "@/app/domain/speedSensor";
-import {UserSpeedConfig} from "@/app/domain/userSpeedConfig";
+import {SpeedState} from "@/domain/speedState";
+import {SpeedSensor} from "@/domain/speedSensor";
+import {UserSpeedConfig} from "@/domain/userSpeedConfig";
 
 export class SpeedTransitionHandler {
     private stableMessageCount: number = 0;

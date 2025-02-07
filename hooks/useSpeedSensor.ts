@@ -1,9 +1,9 @@
 import {useEffect, useState} from "react";
 import {Accelerometer} from "expo-sensors";
-import {SpeedSensor} from "@/app/domain/speedSensor";
-import {SpeedState} from "@/app/domain/speedState";
-import {UserSpeedConfig} from "@/app/domain/userSpeedConfig";
-import {SpeedTransitionHandler} from "@/app/domain/SpeedTransitionHandler";
+import {SpeedSensor} from "@/domain/speedSensor";
+import {SpeedState} from "@/domain/speedState";
+import {UserSpeedConfig} from "@/domain/userSpeedConfig";
+import {SpeedTransitionHandler} from "@/domain/SpeedTransitionHandler";
 
 
 // Hook personalizado para manejar el sensor de velocidad

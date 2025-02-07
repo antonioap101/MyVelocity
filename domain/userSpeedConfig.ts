@@ -1,6 +1,6 @@
 // Configuración global del usuario
-import {DeadZoneConfig} from "@/app/domain/deadZoneConfig";
-import {SpeedState} from "@/app/domain/speedState";
+import {DeadZoneConfig} from "@/domain/deadZoneConfig";
+import {SpeedState} from "@/domain/speedState";
 
 export class UserSpeedConfig {
     public deadZoneConfigs: DeadZoneConfig[];

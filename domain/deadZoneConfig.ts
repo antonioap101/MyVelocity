@@ -1,5 +1,5 @@
 // Configuración detallada de la banda muerta para cada transición de estado
-import {SpeedState} from "@/app/domain/speedState";
+import {SpeedState} from "@/domain/speedState";
 
 export type DeadZoneConfig = {
     fromState: SpeedState;

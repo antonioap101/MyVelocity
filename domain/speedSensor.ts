@@ -1,5 +1,5 @@
 // Define the Interval interface
-import {SpeedState} from "@/app/domain/speedState";
+import {SpeedState} from "@/domain/speedState";
 
 export interface Interval {
     minValue: number;
@@ -41,3 +41,4 @@ export class SpeedSensor {
         return this.currentState;
     }
 }
+
