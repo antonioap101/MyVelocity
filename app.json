@@ -2,7 +2,7 @@
   "expo": {
     "name": "MyVelocity",
     "slug": "MyVelocity",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -37,6 +37,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "8da5d736-39a7-4ec9-8d61-b9a10173a0f3"
+      }
     }
   }
 }

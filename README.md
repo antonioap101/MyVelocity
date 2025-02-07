@@ -1,50 +1,90 @@
-# Welcome to your Expo app 👋
+# 📱 MyVelocity
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**MyVelocity** is a mobile app built with React Native that detects the current speed state of the device using the accelerometer. The app classifies speed states and provides real-time updates through a clean and simple interface.
 
-## Get started
+---
 
-1. Install dependencies
+## 🔖 **Features**
+- 🔍 Real-time speed detection using the device's built-in accelerometer.
+- 🚦 Classification of speed states, including:
+  - **Stopped:** 0 km/h - 1 km/h  
+  - **Walking:** 1 km/h - 4 km/h  
+  - **Marching:** 4 km/h - 6 km/h  
+  - **Running:** 6 km/h - 12 km/h  
+  - **Sprinting:** 12 km/h - 25 km/h  
+  - **Land Motor Vehicle:** 25 km/h - 170 km/h  
+  - **Air Motor Vehicle:** Over 170 km/h  
+- 🔄 Built-in state transition logic for smooth updates.
 
+---
+
+## 🛠️ **Tech Stack**
+- **React Native**: For cross-platform mobile development.
+- **Expo**: To streamline the development and build process.
+- **TypeScript**: For type safety and maintainability.
+
+---
+
+## 🚀 **Getting Started**
+
+### Prerequisites
+- Node.js (latest stable version)
+- Expo CLI installed globally:
+  ```bash
+  npm install -g expo-cli
+  ```
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone    https://github.com/antonioap101/MyVelocity.git
+   cd myvelocity
+   ```
+
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
-
+3. Start the development server:
    ```bash
-    npx expo start
+   expo start
    ```
 
-In the output, you'll find options to open the app in a
+4. Scan the QR code with the **Expo Go** app (available on iOS and Android) to run the app on your device.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 📥 **Building the APK**
+To generate the APK, follow these steps:
 
-## Get a fresh project
+1. Install **EAS CLI**:
+   ```bash
+   npm install -g eas-cli
+   ```
 
-When you're ready, run:
+2. Configure the project for EAS builds:
+   ```bash
+   eas build:configure
+   ```
 
-```bash
-npm run reset-project
-```
+3. Build the APK:
+   ```bash
+   eas build -p android
+   ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+After completion, you can download the APK from Expo.
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
+## 📢 **Future Improvements**
+- Customizable state transitions.
+- Speed logging and export capabilities.
+- Enhanced UI/UX with dynamic indicators.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
+## 🏷️ **License**
+This project is licensed under the MIT License. 
 
-Join our community of developers creating universal apps.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

@@ -7,6 +7,8 @@
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "android-dev": "expo run:android",
+    "clean-android-dev": "rmdir /s /q android && expo run:android --no-build-cache",
+    "clean-prebuild": "expo prebuild --clean",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
