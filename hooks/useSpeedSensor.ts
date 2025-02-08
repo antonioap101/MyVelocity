@@ -1,51 +1,55 @@
+// Hook personalizado para manejar el sensor de velocidad
 import {useEffect, useState} from "react";
 import {Accelerometer} from "expo-sensors";
 import {SpeedSensor} from "@/domain/speedSensor";
 import {SpeedState} from "@/domain/speedState";
-import {UserSpeedConfig} from "@/domain/userSpeedConfig";
-import {SpeedTransitionHandler} from "@/domain/SpeedTransitionHandler";
-
 
 // Hook personalizado para manejar el sensor de velocidad
 export function useSpeedSensor() {
     const [speed, setSpeed] = useState(0); // Velocidad actual
-    const [speedState, setSpeedState] = useState<SpeedState>(SpeedState.PARADO); // Estado de velocidad actual
-
-    // Configuraciones de ejemplo (se pueden parametrizar)
-    const speedSensor = new SpeedSensor({
-        [SpeedState.PARADO]: { minValue: 0, maxValue: 1 },
-        [SpeedState.CAMINANDO]: { minValue: 1, maxValue: 4 },
-        [SpeedState.MARCHANDO]: { minValue: 4, maxValue: 6 },
-        [SpeedState.CORRIENDO]: { minValue: 6, maxValue: 12 },
-        [SpeedState.SPRINT]: { minValue: 12, maxValue: 25 },
-        [SpeedState.VEH_MOTOR_TERRESTRE]: { minValue: 25, maxValue: 170 },
-        [SpeedState.VEH_MOTOR_AEREO]: { minValue: 170, maxValue: Infinity }
-    });
-
-    const userConfig = new UserSpeedConfig([
-        { fromState: SpeedState.CORRIENDO, toState: SpeedState.SPRINT, minDurationMs: 1500, minStableMessages: 10 },
-        { fromState: SpeedState.SPRINT, toState: SpeedState.CORRIENDO, minDurationMs: 500, minStableMessages: 5 }
-    ]);
-
-    const transitionHandler = new SpeedTransitionHandler(userConfig, speedSensor);
+    const [speedState, setSpeedState] = useState<SpeedState>(SpeedState.STOPPED); // Estado de velocidad actual
+    const speedSensor = new SpeedSensor(500);
 
     useEffect(() => {
         let subscription: any;
+        const gravity = 9.81; // Aceleración de la gravedad en m/s²
 
         // Función para calcular la velocidad a partir del acelerómetro
-        const calculateSpeed = (acceleration: { x: number; y: number; z: number }) => {
+        // Función para calcular la velocidad a partir del acelerómetro
+        const calculateSpeed = (acceleration: { timestamp: number; x: number; y: number; z: number }) => {
             const { x, y, z } = acceleration;
-            // Asumimos aceleración en m/s² y calculamos una aproximación de velocidad
-            const instantSpeed = Math.sqrt(x * x + y * y + z * z);
-            setSpeed(instantSpeed);
+
+            // Convertimos las fuerzas g a m/s²
+            const accelerationMs2 = {
+                x: x * gravity,
+                y: y * gravity,
+                z: z * gravity,
+            };
+
+            // Restamos la gravedad del eje vertical (asumimos que el eje Y es el vertical)
+            const correctedAcceleration = {
+                x: accelerationMs2.x,
+                y: accelerationMs2.y - gravity, // Eliminar la componente de la gravedad
+                z: accelerationMs2.z,
+            };
+
+            // Calculamos la magnitud de la aceleración neta en m/s²
+            const instantAcceleration = Math.sqrt(
+                correctedAcceleration.x ** 2 +
+                correctedAcceleration.y ** 2 +
+                correctedAcceleration.z ** 2
+            );
+
+            console.log("Corrected acceleration (m/s²):", correctedAcceleration, '|', "Instant acceleration magnitude (m/s²):", instantAcceleration, '|', "Timestamp:", acceleration.timestamp);
+
+            setSpeed(instantAcceleration); // Actualizamos la aceleración neta (velocidad aproximada)
 
             // Aplicar la lógica de transición y actualizar el estado
-            const newState = transitionHandler.handleTransition(instantSpeed);
+            const newState = speedSensor.handleTransition(instantAcceleration, acceleration.timestamp);
             setSpeedState(newState);
         };
-
         // Suscribirse al acelerómetro
-        Accelerometer.setUpdateInterval(500); // Cada 500 ms
+        Accelerometer.setUpdateInterval(speedSensor.updateInterval); // Cada 500 ms
         subscription = Accelerometer.addListener(calculateSpeed);
 
         return () => {
@@ -53,5 +57,5 @@ export function useSpeedSensor() {
         };
     }, []);
 
-    return { speed, speedState };
+    return {speed, speedState};
 }
