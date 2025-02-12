@@ -2,6 +2,7 @@
   "expo": {
     "name": "MyVelocity",
     "slug": "MyVelocity",
+    "owner": "antapagon",
     "version": "0.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
