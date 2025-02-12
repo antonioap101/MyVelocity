@@ -1,5 +1,5 @@
 // Hook personalizado para manejar el sensor de velocidad
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {Accelerometer} from "expo-sensors";
 import {SpeedSensor} from "@/domain/speedSensor";
 import {SpeedState} from "@/domain/speedState";
@@ -8,7 +8,7 @@ import {SpeedState} from "@/domain/speedState";
 export function useSpeedSensor() {
     const [speed, setSpeed] = useState(0); // Velocidad actual
     const [speedState, setSpeedState] = useState<SpeedState>(SpeedState.STOPPED); // Estado de velocidad actual
-    const speedSensor = new SpeedSensor(500);
+    const speedSensor = useRef(new SpeedSensor(500)).current; // Instancia persistente
 
     useEffect(() => {
         let subscription: any;
@@ -40,7 +40,7 @@ export function useSpeedSensor() {
                 correctedAcceleration.z ** 2
             );
 
-            console.log("Corrected acceleration (m/s²):", correctedAcceleration, '|', "Instant acceleration magnitude (m/s²):", instantAcceleration, '|', "Timestamp:", acceleration.timestamp);
+            // console.log("Corrected acceleration (m/s²):", correctedAcceleration, '|', "Instant acceleration magnitude (m/s²):", instantAcceleration, '|', "Timestamp:", acceleration.timestamp);
 
             setSpeed(instantAcceleration); // Actualizamos la aceleración neta (velocidad aproximada)
 
@@ -57,5 +57,5 @@ export function useSpeedSensor() {
         };
     }, []);
 
-    return {speed, speedState};
+    return {speed, speedSensor, speedState};
 }

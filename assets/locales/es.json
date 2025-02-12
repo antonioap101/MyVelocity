@@ -16,14 +16,15 @@
     "running": "corriendo",
     "sprinting": "sprint",
     "land_motor_vehicle": "vehículo de motor terrestre",
-    "air_motor_vehicle": "vehículo de motor aéreo"
+    "air_motor_vehicle": "vehículo de motor aéreo",
+    "unknown": "desconocido"
   },
   "settings": {
     "title": "Configuración del sensor de velocidad",
     "initial_interval": "Intervalo inicial (ms)",
     "dead_zones": "Configuración de bandas muertas",
-    "running_to_sprinting": "De corriendo a sprint",
-    "sprinting_to_running": "De sprint a corriendo",
+    "min_speed": "Velocidad mínima (m/s)",
+    "max_speed": "Velocidad máxima (m/s)",
     "min_duration": "Duración mínima (ms)",
     "stable_messages": "Mensajes estables mínimos",
     "save": "Guardar configuraciones",

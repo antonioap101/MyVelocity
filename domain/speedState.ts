@@ -8,3 +8,5 @@ export enum SpeedState {
     LAND_MOTOR_VEHICLE = "LAND_MOTOR_VEHICLE",
     AIR_MOTOR_VEHICLE = "AIR_MOTOR_VEHICLE",
 }
+
+

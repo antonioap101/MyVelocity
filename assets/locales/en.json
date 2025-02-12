@@ -14,19 +14,20 @@
     "walking": "walking",
     "marching": "marching",
     "running": "running",
-    "sprinting": "sprint",
+    "sprinting": "sprinting",
     "land_motor_vehicle": "motorized land vehicle",
-    "air_motor_vehicle": "motorized air vehicle"
+    "air_motor_vehicle": "motorized air vehicle",
+    "unknown": "unknown"
   },
   "settings": {
-    "title": "Configuración del sensor de velocidad",
-    "initial_interval": "Intervalo inicial (ms)",
-    "dead_zones": "Configuración de bandas muertas",
-    "running_to_sprinting": "De corriendo a sprint",
-    "sprinting_to_running": "De sprint a corriendo",
-    "min_duration": "Duración mínima (ms)",
-    "stable_messages": "Mensajes estables mínimos",
-    "save": "Guardar configuraciones",
-    "saved": "Configuraciones guardadas con éxito"
+    "title": "Speed Sensor Settings",
+    "initial_interval": "Initial Interval (ms)",
+    "dead_zones": "Dead Zone Settings",
+    "min_speed": "Minimum Speed (m/s)",
+    "max_speed": "Maximum Speed (m/s)",
+    "min_duration": "Minimum Duration (ms)",
+    "stable_messages": "Minimum Stable Messages",
+    "save": "Save Settings",
+    "saved": "Settings saved successfully"
   }
 }

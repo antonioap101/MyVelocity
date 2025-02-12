@@ -1,34 +1,62 @@
-import {SpeedState} from "@/domain/speedState";
 
-// Define the Interval interface
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SpeedState } from "@/domain/speedState";
+
+// Define Interval interface
 export interface Interval {
     minValue: number;
     maxValue: number;
     minDurationMs: number;
 }
 
-// Update the SpeedTransitionConfig type
+// Define SpeedTransitionConfig
 export type SpeedTransitionConfig = {
     [state in SpeedState]: Interval;
-};
 
+};
 export class SpeedSensor {
     private readonly _updateInterval: number;
     private _sensorStatus = {currentSpeed: 0, lastTimestamp: Date.now()};
     private _speedState = {current: SpeedState.STOPPED, last: SpeedState.STOPPED};
-    private readonly _transitionConfig: SpeedTransitionConfig;
+    private _transitionConfig: SpeedTransitionConfig;
+    private readonly _defaultTransitionConfig: SpeedTransitionConfig = {
+        [SpeedState.STOPPED]: {minValue: 0, maxValue: 1, minDurationMs: 500},
+        [SpeedState.WALKING]: {minValue: 1, maxValue: 4, minDurationMs: 500},
+        [SpeedState.MARCHING]: {minValue: 4, maxValue: 6, minDurationMs: 500},
+        [SpeedState.RUNNING]: {minValue: 6, maxValue: 12, minDurationMs: 500},
+        [SpeedState.SPRINTING]: {minValue: 12, maxValue: 25, minDurationMs: 500},
+        [SpeedState.LAND_MOTOR_VEHICLE]: {minValue: 25, maxValue: 170, minDurationMs: 500},
+        [SpeedState.AIR_MOTOR_VEHICLE]: {minValue: 170, maxValue: Infinity, minDurationMs: 500},
+    };
 
     constructor(updateInterval: number) {
         this._updateInterval = updateInterval;
-        this._transitionConfig = {
-            [SpeedState.STOPPED]: {minValue: 0, maxValue: 1, minDurationMs: updateInterval},
-            [SpeedState.WALKING]: {minValue: 1, maxValue: 4, minDurationMs: updateInterval},
-            [SpeedState.MARCHING]: {minValue: 4, maxValue: 6, minDurationMs: updateInterval},
-            [SpeedState.RUNNING]: {minValue: 6, maxValue: 12, minDurationMs: updateInterval},
-            [SpeedState.SPRINTING]: {minValue: 12, maxValue: 25, minDurationMs: updateInterval},
-            [SpeedState.LAND_MOTOR_VEHICLE]: {minValue: 25, maxValue: 170, minDurationMs: updateInterval},
-            [SpeedState.AIR_MOTOR_VEHICLE]: {minValue: 170, maxValue: Infinity, minDurationMs: updateInterval}
-        };
+        this._transitionConfig = {...this._defaultTransitionConfig};
+
+        // Cargar configuraciones desde AsyncStorage al iniciar
+        this.loadConfig();
+    }
+
+    // Guardar en AsyncStorage
+    private async saveConfig(): Promise<void> {
+        try {
+            await AsyncStorage.setItem("speedSensorConfig", JSON.stringify(this._transitionConfig));
+        } catch (error) {
+            console.error("Error saving transition config:", error);
+        }
+    }
+
+    // Cargar desde AsyncStorage
+    private async loadConfig(): Promise<void> {
+        try {
+            const storedConfig = await AsyncStorage.getItem("speedSensorConfig");
+            if (storedConfig) {
+                this._transitionConfig = JSON.parse(storedConfig);
+                console.log("Loaded transition config from storage:", this._transitionConfig);
+            }
+        } catch (error) {
+            console.error("Error loading transition config:", error);
+        }
     }
 
     // Method to update the speed and process state transitions
@@ -57,7 +85,7 @@ export class SpeedSensor {
                 break;
             }
         }
-        console.log("Speed state:", this._speedState.current, '|', "Elapsed time (ms):", now - this._sensorStatus.lastTimestamp);
+        // console.log("Speed state:", this._speedState.current, '|', "Elapsed time (ms):", now - this._sensorStatus.lastTimestamp);
         return this._speedState.current; // Return the last confirmed state if transition not complete
     }
 
@@ -65,16 +93,27 @@ export class SpeedSensor {
         return this._updateInterval;
     }
 
-    get sensorStatus(): { currentSpeed: number; lastTimestamp: number } {
-        return this._sensorStatus;
+
+    // Getter method to retrieve a specific field from the transitionConfig object
+    public getTransitionConfigField(state: SpeedState, field: keyof Interval): number | undefined {
+        return this._transitionConfig[state] ? this._transitionConfig[state][field] : undefined;
     }
 
-    get speedState(): { current: SpeedState; last: SpeedState } {
-        return this._speedState;
+    // Setter method para actualizar un campo y guardar la configuración
+    public async setTransitionConfigField(state: SpeedState, field: keyof Interval, value: number): Promise<void> {
+        if (this._transitionConfig[state]) {
+            this._transitionConfig[state][field] = value;
+            await this.saveConfig(); // Guardar cambios
+        }
+        console.log("Transition config updated:", state, '|', field, '|', value);
+    }
+
+    public async reset(): Promise<void> {
+        this._transitionConfig = {...this._defaultTransitionConfig};
+        await this.saveConfig(); // Guardar valores reseteados
     }
 
     get transitionConfig(): SpeedTransitionConfig {
         return this._transitionConfig;
     }
-
 }

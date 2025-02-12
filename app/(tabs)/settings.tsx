@@ -1,108 +1,126 @@
 import React, {useEffect, useState} from "react";
-import {View, Text, TextInput, Button, StyleSheet, ScrollView, useColorScheme} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
+import {Button, ScrollView, StyleSheet, Text, TextInput, useColorScheme, View,} from "react-native";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {useTranslation} from "react-i18next";
 import {Colors} from "@/assets/theme/Colors";
+import {IndexPath} from "@ui-kitten/components";
+import {CustomSelect, Option} from "@/components/CustomSelect";
+import {SpeedStateUtils} from "@/domain/speedStateUtils";
+import {SpeedState} from "@/domain/speedState";
+import {useSpeedSensor} from "@/hooks/useSpeedSensor";
 
-type Styles = ReturnType<typeof createStyles>; // Correctly infer the type of styles
-
-export default function Settings(){
-    const { t } = useTranslation();
+export default function Settings() {
+    const {t} = useTranslation();
     const colorScheme = useColorScheme();
-    const [styles, setStyles] = useState<Styles>(createStyles('light'));
+    const {speedSensor} = useSpeedSensor(); // Access the speedSensor instance
+    const [styles, setStyles] = useState(createStyles("light"));
 
     useEffect(() => {
-        if (colorScheme === undefined || colorScheme === null) {
-            return;
-        }
-        setStyles(createStyles(colorScheme));
+        if (colorScheme) setStyles(createStyles(colorScheme));
     }, [colorScheme]);
 
+    // Selected state from dropdown
+    const [selectedIndex, setSelectedIndex] = useState<IndexPath | IndexPath[]>(new IndexPath(0));
 
-    // Estados para configurar las bandas muertas
-    const [initialInterval, setInitialInterval] = useState("500"); // Ejemplo de valor por defecto
-    const [deadZoneConfigs, setDeadZoneConfigs] = useState({
-        runningToSprinting: { duration: "1500", stableMessages: "10" },
-        sprintingToRunning: { duration: "500", stableMessages: "5" },
-    });
+    // Extract available options for selection
+    const options: Option[] = Object.values(SpeedState).map((state) => ({
+        title: SpeedStateUtils.getName(state),
+        accessoryLeft: () => SpeedStateUtils.getIcon(state),
+    }));
 
-    // Controladores de cambio
-    const handleInitialIntervalChange = (value: string) => setInitialInterval(value);
+    // Get the selected SpeedState
+    const selectedState = Object.values(SpeedState)[(selectedIndex as IndexPath).row];
 
-    const handleDeadZoneChange = (transitionKey: string, field: string, value: string) => {
+    // Fetch settings for the selected state
+    const selectedConfig = speedSensor.getTransitionConfigField(selectedState, "minDurationMs");
 
+    // State for the editable fields
+    const [minDuration, setMinDuration] = useState(selectedConfig || 500);
+    const [minValue, setMinValue] = useState(speedSensor.getTransitionConfigField(selectedState, "minValue") || 0);
+    const [maxValue, setMaxValue] = useState(speedSensor.getTransitionConfigField(selectedState, "maxValue") || 10);
+
+    // Update settings when selection changes
+    useEffect(() => {
+        setMinDuration(speedSensor.getTransitionConfigField(selectedState, "minDurationMs") || 500);
+        setMinValue(speedSensor.getTransitionConfigField(selectedState, "minValue") || 0);
+        setMaxValue(speedSensor.getTransitionConfigField(selectedState, "maxValue") || 10);
+    }, [selectedState]);
+
+    // Handlers for updating speedSensor config
+    const handleMinDurationChange = (value: string) => {
+        const newValue = parseInt(value, 10) || 0;
+        setMinDuration(newValue);
+        speedSensor.setTransitionConfigField(selectedState, "minDurationMs", newValue);
     };
 
-    const handleSaveSettings = () => {
-        // Lógica para guardar las configuraciones (persistencia si es necesario)
-        console.log("Settings saved:", { initialInterval, deadZoneConfigs });
-        alert(t("settings.saved"));
+    const handleMinValueChange = (value: string) => {
+        const newValue = parseFloat(value) || 0;
+        setMinValue(newValue);
+        speedSensor.setTransitionConfigField(selectedState, "minValue", newValue);
+    };
+
+    const handleMaxValueChange = (value: string) => {
+        const newValue = parseFloat(value) || 0;
+        setMaxValue(newValue);
+        speedSensor.setTransitionConfigField(selectedState, "maxValue", newValue);
+    };
+
+    // Reset function to restore original values
+    const handleReset = () => {
+        speedSensor.reset();
     };
 
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.content}>
                 <Text style={styles.title}>{t("settings.title")}</Text>
+                <CustomSelect
+                    label="Select Speed State"
+                    options={options}
+                    selectedIndex={selectedIndex}
+                    onSelect={setSelectedIndex}
+                />
 
-                {/* Configuración del intervalo inicial */}
+                {/* Min Duration Configuration */}
                 <View style={styles.section}>
-                    <Text style={styles.label}>{t("settings.initial_interval")}</Text>
+                    <Text style={styles.label}>{t("settings.min_duration")}</Text>
                     <TextInput
                         style={styles.input}
                         keyboardType="numeric"
-                        value={initialInterval}
-                        onChangeText={handleInitialIntervalChange}
+                        value={String(minDuration)}
+                        onChangeText={handleMinDurationChange}
                     />
                 </View>
 
-                {/* Configuración de bandas muertas */}
+                {/* Speed Range Configuration */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t("settings.dead_zones")}</Text>
-                    <View style={styles.transitionSection}>
-                        <Text style={styles.label}>{t("settings.running_to_sprinting")}</Text>
-                        <Text>{t("settings.min_duration")}</Text>
-                        <TextInput
-                            style={styles.input}
-                            keyboardType="numeric"
-                            value={deadZoneConfigs.runningToSprinting.duration}
-                            onChangeText={(value) => handleDeadZoneChange("runningToSprinting", "duration", value)}
-                        />
-                        <Text>{t("settings.stable_messages")}</Text>
-                        <TextInput
-                            style={styles.input}
-                            keyboardType="numeric"
-                            value={deadZoneConfigs.runningToSprinting.stableMessages}
-                            onChangeText={(value) => handleDeadZoneChange("runningToSprinting", "stableMessages", value)}
-                        />
-                    </View>
-
-                    <View style={styles.transitionSection}>
-                        <Text style={styles.label}>{t("settings.sprinting_to_running")}</Text>
-                        <Text>{t("settings.min_duration")}</Text>
-                        <TextInput
-                            style={styles.input}
-                            keyboardType="numeric"
-                            value={deadZoneConfigs.sprintingToRunning.duration}
-                            onChangeText={(value) => handleDeadZoneChange("sprintingToRunning", "duration", value)}
-                        />
-                        <Text>{t("settings.stable_messages")}</Text>
-                        <TextInput
-                            style={styles.input}
-                            keyboardType="numeric"
-                            value={deadZoneConfigs.sprintingToRunning.stableMessages}
-                            onChangeText={(value) => handleDeadZoneChange("sprintingToRunning", "stableMessages", value)}
-                        />
-                    </View>
+                    <Text style={styles.label}>{t("settings.min_speed")}</Text>
+                    <TextInput
+                        style={styles.input}
+                        keyboardType="numeric"
+                        value={String(minValue)}
+                        onChangeText={handleMinValueChange}
+                    />
                 </View>
 
-                {/* Botón para guardar configuraciones */}
-                <Button title={t("settings.save")} onPress={handleSaveSettings} />
+                <View style={styles.section}>
+                    <Text style={styles.label}>{t("settings.max_speed")}</Text>
+                    <TextInput
+                        style={styles.input}
+                        keyboardType="numeric"
+                        value={String(maxValue)}
+                        onChangeText={handleMaxValueChange}
+                    />
+                </View>
+
+                {/* Reset Button */}
+                <Button title="Reset to Defaults" onPress={handleReset} color="red"/>
             </ScrollView>
         </SafeAreaView>
     );
-};
+}
 
-
+// Styles
 export const createStyles = (colorScheme: "light" | "dark") =>
     StyleSheet.create({
         container: {
@@ -122,12 +140,6 @@ export const createStyles = (colorScheme: "light" | "dark") =>
         section: {
             marginBottom: 20,
         },
-        sectionTitle: {
-            fontSize: 20,
-            fontWeight: "600",
-            marginBottom: 10,
-            color: colorScheme === "dark" ? Colors.dark.text : Colors.light.text,
-        },
         label: {
             fontSize: 16,
             marginBottom: 5,
@@ -141,8 +153,5 @@ export const createStyles = (colorScheme: "light" | "dark") =>
             marginBottom: 10,
             backgroundColor: colorScheme === "dark" ? Colors.dark.background : "#fff",
             color: colorScheme === "dark" ? Colors.dark.text : Colors.light.text,
-        },
-        transitionSection: {
-            marginBottom: 20,
         },
     });
