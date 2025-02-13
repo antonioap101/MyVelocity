@@ -7,6 +7,7 @@ export enum SpeedState {
     SPRINTING = "SPRINTING",
     LAND_MOTOR_VEHICLE = "LAND_MOTOR_VEHICLE",
     AIR_MOTOR_VEHICLE = "AIR_MOTOR_VEHICLE",
+    NONE = "NONE",
 }
 
 

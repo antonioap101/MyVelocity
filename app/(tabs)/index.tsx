@@ -6,7 +6,8 @@ import {useSpeedSensor} from "@/hooks/useSpeedSensor";
 import {ThemedView} from "@/components/ThemedView";
 import {ThemedText} from "@/components/ThemedText";
 import {Colors} from "@/assets/theme/Colors";
-import {capitalize, SpeedStateUtils} from "@/domain/speedStateUtils";
+import {SpeedStateUtils} from "@/domain/speedStateUtils";
+import {capitalize} from "@/utils/capitalize";
 
 export default function Index() {
     const {t} = useTranslation();

@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Pressable, ScrollView, StyleSheet, Text, TextInput, useColorScheme, View,} from "react-native";
+import {Pressable, StyleSheet, Text, TextInput, useColorScheme, View,} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useTranslation} from "react-i18next";
 import {Colors} from "@/assets/theme/Colors";
@@ -10,6 +10,7 @@ import {SpeedState} from "@/domain/speedState";
 import {useSpeedSensor} from "@/hooks/useSpeedSensor";
 import RangeAdjuster from "@/components/RangeAdjuster";
 import Separator from "@/components/Separator";
+import {ThemedView} from "@/components/ThemedView";
 
 export default function Settings() {
     const {t} = useTranslation();
@@ -21,64 +22,88 @@ export default function Settings() {
         if (colorScheme) setStyles(createStyles(colorScheme));
     }, [colorScheme]);
 
-    // useEffect(() => {
-    //     showError("This is a test error message");
-    // }, []);
-
     // Selected state from dropdown
     const [selectedIndex, setSelectedIndex] = useState<IndexPath | IndexPath[]>(new IndexPath(0));
 
+
     // Extract available options for selection
-    const options: Option[] = Object.values(SpeedState).map((state) => ({
-        title: SpeedStateUtils.getName(state),
-        accessoryLeft: () => SpeedStateUtils.getIcon(state),
-    }));
+    const options: Option[] = SpeedStateUtils
+        .getValidStates()
+        .map((state) => ({
+            title: SpeedStateUtils.getName(state),
+            accessoryLeft: () => SpeedStateUtils.getIcon(state),
+        }));
 
-    // Get the selected SpeedState
-    const selectedState = Object.values(SpeedState)[(selectedIndex as IndexPath).row];
-
-    // Fetch settings for the selected state
-    const selectedConfig = speedSensor.getTransitionConfigField(selectedState, "minDurationMs");
+    // Get the selected SpeedState dynamically
+    const selectedState: SpeedState = Object.values(SpeedState)[(selectedIndex as IndexPath).row] as SpeedState;
 
     // State for the editable fields
-    const [minDuration, setMinDuration] = useState(selectedConfig || 500);
-    const [minValue, setMinValue] = useState(speedSensor.getTransitionConfigField(selectedState, "minValue") || 0);
-    const [maxValue, setMaxValue] = useState(speedSensor.getTransitionConfigField(selectedState, "maxValue") || 10);
+    const [minDuration, setMinDuration] = useState(500);
+    const [minValue, setMinValue] = useState(0);
+    const [maxValue, setMaxValue] = useState(10);
 
-    // Update settings when selection changes
+    const [minLimit, setMinLimit] = useState(0);
+    const [maxLimit, setMaxLimit] = useState(170);
+
+    function getPreviousStateMaxValue() {
+        const prevState = SpeedStateUtils.getPreviousState(selectedState);
+        if (prevState === SpeedState.NONE) return 0;
+        return speedSensor.getTransitionConfigField(prevState, "maxValue") || 0;
+    }
+
+    function getNextStateMinValue() {
+        const nextState = SpeedStateUtils.getNextState(selectedState);
+        if (nextState === SpeedState.NONE) return 0;
+        return speedSensor.getTransitionConfigField(nextState, "minValue") || Infinity;
+    }
+
+    function loadSettings() {
+        const minDur = speedSensor.getTransitionConfigField(selectedState, "minDurationMs") || 500;
+        const minVal = speedSensor.getTransitionConfigField(selectedState, "minValue") || 0;
+        const maxVal = speedSensor.getTransitionConfigField(selectedState, "maxValue") || 10;
+        const maxLimit = getNextStateMinValue();
+        const minLimit = getPreviousStateMaxValue();
+
+        setMinDuration(minDur);
+        setMinValue(minVal);
+        setMaxValue(maxVal);
+        setMinLimit(minLimit);
+        setMaxLimit(maxLimit);
+    }
+
+    // Load configuration only when selected state changes
     useEffect(() => {
-        setMinDuration(speedSensor.getTransitionConfigField(selectedState, "minDurationMs") || 500);
-        setMinValue(speedSensor.getTransitionConfigField(selectedState, "minValue") || 0);
-        setMaxValue(speedSensor.getTransitionConfigField(selectedState, "maxValue") || 10);
+        loadSettings();
     }, [selectedState]);
 
     // Handlers for updating speedSensor config
     const handleMinDurationChange = (value: string) => {
         const newValue = parseInt(value, 10) || 0;
-        setMinDuration(newValue);
-        speedSensor.setTransitionConfigField(selectedState, "minDurationMs", newValue);
+        if (newValue !== minDuration) {
+            setMinDuration(newValue);
+            speedSensor.setTransitionConfigField(selectedState, "minDurationMs", newValue);
+        }
     };
 
-    const handleMinValueChange = (value: string) => {
-        const newValue = parseFloat(value) || 0;
-        setMinValue(newValue);
-        speedSensor.setTransitionConfigField(selectedState, "minValue", newValue);
-    };
+    function handleValueChanges(newRange: { min: number; max: number }) {
+        if (newRange.min !== minValue || newRange.max !== maxValue) {
+            setMinValue(newRange.min);
+            setMaxValue(newRange.max);
+            speedSensor.setTransitionConfigField(selectedState, "minValue", newRange.min);
+            speedSensor.setTransitionConfigField(selectedState, "maxValue", newRange.max);
+        }
+    }
 
-    const handleMaxValueChange = (value: string) => {
-        const newValue = parseFloat(value) || 0;
-        setMaxValue(newValue);
-        speedSensor.setTransitionConfigField(selectedState, "maxValue", newValue);
-    };
 
     // Reset function to restore original values
     const handleReset = () => {
-        speedSensor.reset();
+        speedSensor.reset()
+            .then(r => loadSettings());
     };
 
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView contentContainerStyle={styles.content}>
+            <ThemedView style={styles.content}>
                 <Text style={styles.title}>{t("settings.title")}</Text>
                 <CustomSelect
                     label="Select Speed State"
@@ -88,7 +113,7 @@ export default function Settings() {
                 />
 
                 <Separator orientation={"horizontal"}/>
-                <View style={styles.section}>
+                <View>
                     <Text style={styles.label}>Min Duration (ms)</Text>
                     <TextInput
                         style={styles.input}
@@ -98,26 +123,18 @@ export default function Settings() {
                     />
                 </View>
                 <RangeAdjuster
-                    label="Running Speed Range"
-                    minLimit={0}
-                    maxLimit={30}
-                    value={{
-                        min: speedSensor.getTransitionConfigField(SpeedState.RUNNING, "minValue") || 0,
-                        max: speedSensor.getTransitionConfigField(SpeedState.RUNNING, "maxValue") || 30
-                    }}
-                    onChange={(newRange) => {
-                        speedSensor.setTransitionConfigField(SpeedState.RUNNING, "minValue", newRange.min);
-                        speedSensor.setTransitionConfigField(SpeedState.RUNNING, "maxValue", newRange.max);
-                    }}
+                    label={`${SpeedStateUtils.getName(selectedState)} Speed Range`}
+                    minLimit={minLimit}
+                    maxLimit={maxLimit}
+                    value={{min: minValue, max: maxValue}}
+                    onChange={handleValueChanges}
                 />
 
-            </ScrollView>
+            </ThemedView>
             {/* Reset Button */}
-            <View style={styles.buttonContainer}>
-                <Pressable onPress={handleReset} style={styles.button}>
-                    <Text style={styles.buttonText}>Reset to Defaults</Text>
-                </Pressable>
-            </View>
+            <Pressable onPress={handleReset} style={styles.button}>
+                <Text style={styles.buttonText}>Reset to Defaults</Text>
+            </Pressable>
         </SafeAreaView>
     );
 }
@@ -127,6 +144,7 @@ export const createStyles = (colorScheme: "light" | "dark") =>
     StyleSheet.create({
         container: {
             flex: 1,
+            justifyContent: "space-between",
             backgroundColor: colorScheme === "dark" ? Colors.dark.background : Colors.light.background,
         },
         content: {
@@ -139,7 +157,6 @@ export const createStyles = (colorScheme: "light" | "dark") =>
             textAlign: "center",
             color: colorScheme === "dark" ? Colors.dark.text : Colors.light.text,
         },
-        section: {},
         label: {
             fontSize: 16,
             marginBottom: 5,
@@ -154,22 +171,16 @@ export const createStyles = (colorScheme: "light" | "dark") =>
             backgroundColor: colorScheme === "dark" ? Colors.dark.background : "#fff",
             color: colorScheme === "dark" ? Colors.dark.text : Colors.light.text,
         },
-        buttonContainer: {
-            flex: 1,
-            justifyContent: 'flex-end',
-            marginBottom: 20,
-            padding: 20,
-        },
         button: {
             backgroundColor: colorScheme === "dark" ? Colors.dark.primary : Colors.light.primary,
             borderRadius: 5,
-            marginBottom: 0,
+            alignSelf: "center",
+            padding: 10,
+            margin: 20
         },
         buttonText: {
-            color: colorScheme === "dark" ? Colors.dark.text : Colors.dark.text,
-            textAlign: 'center',
-            padding: 10,
+            color: colorScheme === "dark" ? Colors.dark.text : Colors.light.text,
+            textAlign: "center",
             fontSize: 16,
         }
-
     });

@@ -12,13 +12,48 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import React, {ReactElement} from "react";
 import {useTranslation} from "react-i18next";
-
-// Utility function to capitalize the first letter of a string
-export function capitalize(string: string): string {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
+import {capitalize} from "@/utils/capitalize";
 
 export class SpeedStateUtils {
+    static getPreviousState(speedState: SpeedState): SpeedState {
+        switch (speedState) {
+            case SpeedState.WALKING:
+                return SpeedState.STOPPED;
+            case SpeedState.MARCHING:
+                return SpeedState.WALKING;
+            case SpeedState.RUNNING:
+                return SpeedState.MARCHING;
+            case SpeedState.SPRINTING:
+                return SpeedState.RUNNING;
+            case SpeedState.LAND_MOTOR_VEHICLE:
+                return SpeedState.SPRINTING;
+            case SpeedState.AIR_MOTOR_VEHICLE:
+                return SpeedState.LAND_MOTOR_VEHICLE;
+            default:
+                return SpeedState.NONE;
+        }
+    }
+
+
+    static getNextState(speedState: SpeedState): SpeedState {
+        switch (speedState) {
+            case SpeedState.STOPPED:
+                return SpeedState.WALKING;
+            case SpeedState.WALKING:
+                return SpeedState.MARCHING;
+            case SpeedState.MARCHING:
+                return SpeedState.RUNNING;
+            case SpeedState.RUNNING:
+                return SpeedState.SPRINTING;
+            case SpeedState.SPRINTING:
+                return SpeedState.LAND_MOTOR_VEHICLE;
+            case SpeedState.LAND_MOTOR_VEHICLE:
+                return SpeedState.AIR_MOTOR_VEHICLE;
+            default:
+                return SpeedState.NONE;
+        }
+    }
+
     static getName(speedState: SpeedState) {
         const {t} = useTranslation();
         let stateName: string;
@@ -44,6 +79,7 @@ export class SpeedStateUtils {
             case SpeedState.AIR_MOTOR_VEHICLE:
                 stateName = t("state.air_motor_vehicle");
                 break;
+            case SpeedState.NONE:
             default:
                 stateName = t("state.unknown");
         }
@@ -52,6 +88,7 @@ export class SpeedStateUtils {
 
     static getIcon(speedState: SpeedState, color?: string): ReactElement {
         switch (speedState) {
+
             case SpeedState.STOPPED:
                 return <FontAwesomeIcon icon={faCircleStop} size={24} color={color}/>;
             case SpeedState.WALKING:
@@ -66,8 +103,13 @@ export class SpeedStateUtils {
                 return <FontAwesomeIcon icon={faCarSide} size={24} color={color}/>;
             case SpeedState.AIR_MOTOR_VEHICLE:
                 return <FontAwesomeIcon icon={faPlane} size={24} color={color}/>;
+            case SpeedState.NONE:
             default:
                 return <FontAwesomeIcon icon={faQuestion} size={24} color={color}/>;
         }
+    }
+
+    static getValidStates(): SpeedState[] {
+        return Object.values(SpeedState).filter((state) => state !== SpeedState.NONE);
     }
 }

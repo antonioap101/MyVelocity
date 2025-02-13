@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {SpeedState} from "@/domain/speedState";
 import {errorEmitter} from "@/domain/EventEmitter";
+import {deepClone} from "@/utils/deepClone";
 
 // Define Interval interface
 export interface Interval {
@@ -15,27 +16,35 @@ export type SpeedTransitionConfig = {
 
 };
 
+// Define a global constant for the default config
+const DEFAULT_TRANSITION_CONFIG: SpeedTransitionConfig = {
+    [SpeedState.NONE]: {minValue: 0, maxValue: 0, minDurationMs: 0},
+    [SpeedState.STOPPED]: {minValue: 0, maxValue: 1, minDurationMs: 500},
+    [SpeedState.WALKING]: {minValue: 1, maxValue: 4, minDurationMs: 500},
+    [SpeedState.MARCHING]: {minValue: 4, maxValue: 6, minDurationMs: 500},
+    [SpeedState.RUNNING]: {minValue: 6, maxValue: 12, minDurationMs: 500},
+    [SpeedState.SPRINTING]: {minValue: 12, maxValue: 25, minDurationMs: 500},
+    [SpeedState.LAND_MOTOR_VEHICLE]: {minValue: 25, maxValue: 170, minDurationMs: 500},
+    [SpeedState.AIR_MOTOR_VEHICLE]: {minValue: 170, maxValue: 1000, minDurationMs: 500}
+
+};
+
+
 export class SpeedSensor {
     private readonly _updateInterval: number;
     private _sensorStatus = {currentSpeed: 0, lastTimestamp: Date.now()};
     private _speedState = {current: SpeedState.STOPPED, last: SpeedState.STOPPED};
     private _transitionConfig: SpeedTransitionConfig;
-    private readonly _defaultTransitionConfig: SpeedTransitionConfig = {
-        [SpeedState.STOPPED]: {minValue: 0, maxValue: 1, minDurationMs: 500},
-        [SpeedState.WALKING]: {minValue: 1, maxValue: 4, minDurationMs: 500},
-        [SpeedState.MARCHING]: {minValue: 4, maxValue: 6, minDurationMs: 500},
-        [SpeedState.RUNNING]: {minValue: 6, maxValue: 12, minDurationMs: 500},
-        [SpeedState.SPRINTING]: {minValue: 12, maxValue: 25, minDurationMs: 500},
-        [SpeedState.LAND_MOTOR_VEHICLE]: {minValue: 25, maxValue: 170, minDurationMs: 500},
-        [SpeedState.AIR_MOTOR_VEHICLE]: {minValue: 170, maxValue: Infinity, minDurationMs: 500},
-    };
 
     constructor(updateInterval: number) {
         this._updateInterval = updateInterval;
-        this._transitionConfig = {...this._defaultTransitionConfig};
+        this._transitionConfig = deepClone(DEFAULT_TRANSITION_CONFIG);
 
-        // Cargar configuraciones desde AsyncStorage al iniciar
-        this.loadConfig();
+        // this.loadConfig().then(() => {
+        //     console.warn("Loaded transition config:", this._transitionConfig);
+        // }).catch((err) => {
+        //     console.error("Failed to load transition config:", err);
+        // });
     }
 
     // Guardar en AsyncStorage
@@ -94,15 +103,31 @@ export class SpeedSensor {
     }
 
     // Getter method to retrieve a specific field from the transitionConfig object
-    public getTransitionConfigField(state: SpeedState, field: keyof Interval): number | undefined {
-        return this._transitionConfig[state] ? this._transitionConfig[state][field] : undefined;
+    public getTransitionConfigField(state: SpeedState, field: keyof Interval): number {
+        if (!this._transitionConfig[state]) {
+            console.warn(`State ${state} not found in transition config. Returning default value.`);
+            return DEFAULT_TRANSITION_CONFIG[state][field];
+        }
+
+        const value = this._transitionConfig[state][field];
+
+        if (value === null || value === undefined) {
+            console.warn(`Invalid ${field} value for ${state}. Using default value.`);
+            return DEFAULT_TRANSITION_CONFIG[state][field];
+        }
+
+        console.warn(`Getting transition config field: ${state} | ${field} -> ${value}`);
+        console.warn('Spec-Transition-Config:', this._transitionConfig[state]);
+        console.warn('Whole-Transition-Config:', this._transitionConfig);
+        return value;
     }
+
 
     // Setter method para actualizar un campo y guardar la configuración
     public async setTransitionConfigField(state: SpeedState, field: keyof Interval, value: number): Promise<void> {
-        if (!this.isValidTransitionConfigField(state, field, value)){
+        if (!this.isValidTransitionConfigField(state, field, value)) {
             console.error("Invalid value for transition config field:", state, '|', field, '|', value);
-            errorEmitter.emitError("Invalid value for transition config field!");
+            errorEmitter.emitError(`Invalid value for transition config field: ${state} | ${field} | ${value}`);
         }
         if (this._transitionConfig[state]) {
             this._transitionConfig[state][field] = value;
@@ -112,7 +137,8 @@ export class SpeedSensor {
     }
 
     public async reset(): Promise<void> {
-        this._transitionConfig = {...this._defaultTransitionConfig};
+        console.warn("------------------Transition config reset to default values. DEFUALT:", DEFAULT_TRANSITION_CONFIG);
+        this._transitionConfig = deepClone(DEFAULT_TRANSITION_CONFIG);
         await this.saveConfig(); // Guardar valores reseteados
     }
 

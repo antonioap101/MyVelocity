@@ -1,5 +1,4 @@
-import React, { createContext, ReactNode, useContext, useState, useEffect } from 'react';
-import { ErrorWarningPopup } from '@/components/ErrorWarningPopup';
+import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
 import {errorEmitter} from "@/domain/EventEmitter";
 
 
@@ -53,7 +52,6 @@ export const ErrorWarningProvider: React.FC<{ children: ReactNode }> = ({ childr
     return (
         <ErrorWarningContext.Provider value={contextValue}>
             {children}
-            <ErrorWarningPopup />
         </ErrorWarningContext.Provider>
     );
 };

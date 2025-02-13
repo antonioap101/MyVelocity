@@ -1,5 +1,5 @@
 import {SplashScreen, Stack} from "expo-router";
-import {useEffect} from "react";
+import React, {useEffect} from "react";
 import {useFonts} from "expo-font";
 import {useColorScheme} from "react-native";
 import '@/i18n'; // This line imports the i18n configuration
@@ -7,6 +7,7 @@ import {DarkTheme, DefaultTheme, ThemeProvider} from "@react-navigation/native";
 import {ApplicationProvider} from "@ui-kitten/components";
 import * as eva from '@eva-design/eva';
 import {ErrorWarningProvider} from "@/hooks/errors/useErrors";
+import {ErrorWarningPopup} from "@/components/ErrorWarningPopup";
 
 export default function RootLayout() {
     const colorScheme = useColorScheme();
@@ -31,6 +32,7 @@ export default function RootLayout() {
         <ApplicationProvider {...eva} theme={colorScheme === 'dark' ? eva.dark : eva.light}>
             <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
                 <ErrorWarningProvider>
+                    <ErrorWarningPopup />
                     <Stack screenOptions={{headerShown: false}}>
                         <Stack.Screen name="(tabs)" options={{
                             title: 'MyVelocity',

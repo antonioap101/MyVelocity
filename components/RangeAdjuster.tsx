@@ -1,9 +1,7 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, Text, TextInput, useColorScheme, View} from 'react-native';
 import RangeSlider from 'rn-range-slider';
 import {Colors} from "@/assets/theme/Colors";
-
-
 
 interface RangeAdjusterProps {
     label: string;
@@ -14,38 +12,36 @@ interface RangeAdjusterProps {
 }
 
 const RangeAdjuster: React.FC<RangeAdjusterProps> = ({ label, minLimit, maxLimit, value, onChange }) => {
-    const [range, setRange] = useState(value);
     const colorScheme = useColorScheme();
     const [styles, setStyles] = useState(createStyles("light"));
 
     useEffect(() => {
         if (colorScheme) setStyles(createStyles(colorScheme));
     }, [colorScheme]);
-    // Custom components for slider visuals
+
+
+    // Custom slider components
     const Thumb = () => <View style={styles.thumb} />;
     const Rail = () => <View style={styles.rail} />;
     const RailSelected = () => <View style={styles.railSelected} />;
     const Label = ({ text }: any) => <View style={styles.label}><Text>{text}</Text></View>;
     const Notch = () => <View style={styles.notch} />;
 
-
-
-    const handleValueChange = useCallback((low: number, high: number) => {
+    const handleValueChange = (low: number, high: number) => {
         const newRange = { min: low, max: high };
-        setRange(newRange);
         onChange(newRange);
-    }, [onChange]);
+    }
 
     const handleInputChange = (field: 'min' | 'max', text: string) => {
         const numericValue = parseFloat(text) || 0;
-        const newRange = { ...range, [field]: numericValue };
+        const newRange = { ...value, [field]: numericValue };
 
+        // Ensure min < max
         if (newRange.min >= newRange.max) {
             if (field === 'min') newRange.min = newRange.max - 1;
             if (field === 'max') newRange.max = newRange.min + 1;
         }
 
-        setRange(newRange);
         onChange(newRange);
     };
 
@@ -56,8 +52,8 @@ const RangeAdjuster: React.FC<RangeAdjusterProps> = ({ label, minLimit, maxLimit
             <RangeSlider
                 min={minLimit}
                 max={maxLimit}
-                low={range.min}
-                high={range.max}
+                low={value.min}
+                high={value.max}
                 step={1}
                 floatingLabel
                 renderThumb={Thumb}
@@ -74,7 +70,7 @@ const RangeAdjuster: React.FC<RangeAdjusterProps> = ({ label, minLimit, maxLimit
                     <TextInput
                         style={styles.input}
                         keyboardType="numeric"
-                        value={range.min.toString()}
+                        value={value.min.toString()}
                         onChangeText={(text) => handleInputChange('min', text)}
                     />
                 </View>
@@ -84,7 +80,7 @@ const RangeAdjuster: React.FC<RangeAdjusterProps> = ({ label, minLimit, maxLimit
                     <TextInput
                         style={styles.input}
                         keyboardType="numeric"
-                        value={range.max.toString()}
+                        value={value.max.toString()}
                         onChangeText={(text) => handleInputChange('max', text)}
                     />
                 </View>
@@ -93,8 +89,6 @@ const RangeAdjuster: React.FC<RangeAdjusterProps> = ({ label, minLimit, maxLimit
     );
 };
 
-
-// Styles
 const createStyles = (colorScheme: "light" | "dark") =>
     StyleSheet.create({
         container: {
@@ -159,7 +153,5 @@ const createStyles = (colorScheme: "light" | "dark") =>
             transform: [{ rotate: '45deg' }],
         },
     });
-
-
 
 export default RangeAdjuster;
