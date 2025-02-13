@@ -14,7 +14,7 @@ import React, {ReactElement} from "react";
 import {useTranslation} from "react-i18next";
 
 // Utility function to capitalize the first letter of a string
-function capitalizeFirstLetter(string: string): string {
+export function capitalize(string: string): string {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
@@ -47,27 +47,27 @@ export class SpeedStateUtils {
             default:
                 stateName = t("state.unknown");
         }
-        return capitalizeFirstLetter(stateName);
+        return capitalize(stateName);
     }
 
-    static getIcon(speedState: SpeedState): ReactElement {
+    static getIcon(speedState: SpeedState, color?: string): ReactElement {
         switch (speedState) {
             case SpeedState.STOPPED:
-                return <FontAwesomeIcon icon={faCircleStop} size={24}/>;
+                return <FontAwesomeIcon icon={faCircleStop} size={24} color={color}/>;
             case SpeedState.WALKING:
-                return <FontAwesomeIcon icon={faPersonWalking} size={24}/>;
+                return <FontAwesomeIcon icon={faPersonWalking} size={24} color={color}/>;
             case SpeedState.MARCHING:
-                return <FontAwesomeIcon icon={faPersonHiking} size={24}/>;
+                return <FontAwesomeIcon icon={faPersonHiking} size={24} color={color}/>;
             case SpeedState.RUNNING:
-                return <FontAwesomeIcon icon={faPersonWalkingArrowRight} size={24}/>;
+                return <FontAwesomeIcon icon={faPersonWalkingArrowRight} size={24} color={color}/>;
             case SpeedState.SPRINTING:
-                return <FontAwesomeIcon icon={faPersonRunning} size={24}/>;
+                return <FontAwesomeIcon icon={faPersonRunning} size={24} color={color}/>;
             case SpeedState.LAND_MOTOR_VEHICLE:
-                return <FontAwesomeIcon icon={faCarSide} size={24}/>;
+                return <FontAwesomeIcon icon={faCarSide} size={24} color={color}/>;
             case SpeedState.AIR_MOTOR_VEHICLE:
-                return <FontAwesomeIcon icon={faPlane} size={24}/>;
+                return <FontAwesomeIcon icon={faPlane} size={24} color={color}/>;
             default:
-                return <FontAwesomeIcon icon={faQuestion} size={24}/>;
+                return <FontAwesomeIcon icon={faQuestion} size={24} color={color}/>;
         }
     }
 }
