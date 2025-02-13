@@ -6,6 +6,7 @@ import '@/i18n'; // This line imports the i18n configuration
 import {DarkTheme, DefaultTheme, ThemeProvider} from "@react-navigation/native";
 import {ApplicationProvider} from "@ui-kitten/components";
 import * as eva from '@eva-design/eva';
+import {ErrorWarningProvider} from "@/hooks/errors/useErrors";
 
 export default function RootLayout() {
     const colorScheme = useColorScheme();
@@ -29,13 +30,15 @@ export default function RootLayout() {
     return (
         <ApplicationProvider {...eva} theme={colorScheme === 'dark' ? eva.dark : eva.light}>
             <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                <Stack screenOptions={{headerShown: false}}>
-                    <Stack.Screen name="(tabs)" options={{
-                        title: 'MyVelocity',
-                        headerShown: false
-                    }}/>
-                    <Stack.Screen name="+not-found"/>
-                </Stack>
+                <ErrorWarningProvider>
+                    <Stack screenOptions={{headerShown: false}}>
+                        <Stack.Screen name="(tabs)" options={{
+                            title: 'MyVelocity',
+                            headerShown: false
+                        }}/>
+                        <Stack.Screen name="+not-found"/>
+                    </Stack>
+                </ErrorWarningProvider>
             </ThemeProvider>
         </ApplicationProvider>
     );

@@ -1,6 +1,6 @@
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SpeedState } from "@/domain/speedState";
+import {SpeedState} from "@/domain/speedState";
+import {errorEmitter} from "@/domain/EventEmitter";
 
 // Define Interval interface
 export interface Interval {
@@ -14,6 +14,7 @@ export type SpeedTransitionConfig = {
     [state in SpeedState]: Interval;
 
 };
+
 export class SpeedSensor {
     private readonly _updateInterval: number;
     private _sensorStatus = {currentSpeed: 0, lastTimestamp: Date.now()};
@@ -42,11 +43,10 @@ export class SpeedSensor {
         try {
             await AsyncStorage.setItem("speedSensorConfig", JSON.stringify(this._transitionConfig));
         } catch (error) {
-            console.error("Error saving transition config:", error);
+            errorEmitter.emitError("Failed to save speed sensor configuration!");
         }
     }
 
-    // Cargar desde AsyncStorage
     private async loadConfig(): Promise<void> {
         try {
             const storedConfig = await AsyncStorage.getItem("speedSensorConfig");
@@ -55,7 +55,7 @@ export class SpeedSensor {
                 console.log("Loaded transition config from storage:", this._transitionConfig);
             }
         } catch (error) {
-            console.error("Error loading transition config:", error);
+            errorEmitter.emitError("Failed to load speed sensor configuration!");
         }
     }
 
@@ -93,7 +93,6 @@ export class SpeedSensor {
         return this._updateInterval;
     }
 
-
     // Getter method to retrieve a specific field from the transitionConfig object
     public getTransitionConfigField(state: SpeedState, field: keyof Interval): number | undefined {
         return this._transitionConfig[state] ? this._transitionConfig[state][field] : undefined;
@@ -101,6 +100,10 @@ export class SpeedSensor {
 
     // Setter method para actualizar un campo y guardar la configuración
     public async setTransitionConfigField(state: SpeedState, field: keyof Interval, value: number): Promise<void> {
+        if (!this.isValidTransitionConfigField(state, field, value)){
+            console.error("Invalid value for transition config field:", state, '|', field, '|', value);
+            errorEmitter.emitError("Invalid value for transition config field!");
+        }
         if (this._transitionConfig[state]) {
             this._transitionConfig[state][field] = value;
             await this.saveConfig(); // Guardar cambios
@@ -116,4 +119,24 @@ export class SpeedSensor {
     get transitionConfig(): SpeedTransitionConfig {
         return this._transitionConfig;
     }
+
+    // Function to validate a given value for a specific SpeedState
+    public isValidTransitionConfigField(state: SpeedState, field: keyof Interval, value: number): boolean {
+        if (value < 0) return false; // Value should be non-negative
+
+        const interval = this._transitionConfig[state];
+        if (!interval) return false; // State must exist in the config
+
+        switch (field) {
+            case "minValue":
+                return value < interval.maxValue; // minValue should be less than maxValue
+            case "maxValue":
+                return value > interval.minValue; // maxValue should be greater than minValue
+            case "minDurationMs":
+                return value >= 0; // minDurationMs should be non-negative
+            default:
+                return false; // Invalid field
+        }
+    }
+
 }

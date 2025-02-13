@@ -21,6 +21,10 @@ export default function Settings() {
         if (colorScheme) setStyles(createStyles(colorScheme));
     }, [colorScheme]);
 
+    // useEffect(() => {
+    //     showError("This is a test error message");
+    // }, []);
+
     // Selected state from dropdown
     const [selectedIndex, setSelectedIndex] = useState<IndexPath | IndexPath[]>(new IndexPath(0));
 
