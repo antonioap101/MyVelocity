@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {StyleSheet, Text, useColorScheme, View} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useTranslation} from "react-i18next";
@@ -6,12 +6,19 @@ import {useSpeedSensor} from "@/hooks/useSpeedSensor";
 import {useNavigation} from "expo-router";
 import {ThemedView} from "@/components/ThemedView";
 import {ThemedText} from "@/components/ThemedText";
+import {Colors} from "@/assets/theme/Colors";
 
 export default function Index() {
     const {t} = useTranslation();
     const {speed, speedState} = useSpeedSensor();
     const navigation = useNavigation();
     const colorScheme = useColorScheme();
+    const [styles, setStyles] = useState(createStyles("light"));
+
+    useEffect(() => {
+        if (colorScheme) setStyles(createStyles(colorScheme));
+    }, [colorScheme]);
+
     // Función para capitalizar el texto
     const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
@@ -29,7 +36,7 @@ export default function Index() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colorScheme: "light" | "dark") => StyleSheet.create({
     container: {
         flex: 1,
     },
@@ -60,6 +67,6 @@ const styles = StyleSheet.create({
     stateValue: {
         fontSize: 28,
         fontWeight: "600",
-        color: "#ff4500",
+        color: colorScheme === "dark" ? Colors.dark.primary : Colors.light.primary,
     },
 });
