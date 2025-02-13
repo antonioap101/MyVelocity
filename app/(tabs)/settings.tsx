@@ -8,6 +8,7 @@ import {CustomSelect, Option} from "@/components/CustomSelect";
 import {SpeedStateUtils} from "@/domain/speedStateUtils";
 import {SpeedState} from "@/domain/speedState";
 import {useSpeedSensor} from "@/hooks/useSpeedSensor";
+import RangeAdjuster from "@/components/RangeAdjuster";
 
 export default function Settings() {
     const {t} = useTranslation();
@@ -81,37 +82,17 @@ export default function Settings() {
                     onSelect={setSelectedIndex}
                 />
 
-                {/* Min Duration Configuration */}
-                <View style={styles.section}>
-                    <Text style={styles.label}>{t("settings.min_duration")}</Text>
-                    <TextInput
-                        style={styles.input}
-                        keyboardType="numeric"
-                        value={String(minDuration)}
-                        onChangeText={handleMinDurationChange}
-                    />
-                </View>
-
-                {/* Speed Range Configuration */}
-                <View style={styles.section}>
-                    <Text style={styles.label}>{t("settings.min_speed")}</Text>
-                    <TextInput
-                        style={styles.input}
-                        keyboardType="numeric"
-                        value={String(minValue)}
-                        onChangeText={handleMinValueChange}
-                    />
-                </View>
-
-                <View style={styles.section}>
-                    <Text style={styles.label}>{t("settings.max_speed")}</Text>
-                    <TextInput
-                        style={styles.input}
-                        keyboardType="numeric"
-                        value={String(maxValue)}
-                        onChangeText={handleMaxValueChange}
-                    />
-                </View>
+                <RangeAdjuster
+                    label="Running Speed Range"
+                    minLimit={0}
+                    maxLimit={30}
+                    value={{ min: speedSensor.getTransitionConfigField(SpeedState.RUNNING, "minValue") || 0,
+                        max: speedSensor.getTransitionConfigField(SpeedState.RUNNING, "maxValue") || 30 }}
+                    onChange={(newRange) => {
+                        speedSensor.setTransitionConfigField(SpeedState.RUNNING, "minValue", newRange.min);
+                        speedSensor.setTransitionConfigField(SpeedState.RUNNING, "maxValue", newRange.max);
+                    }}
+                />
 
                 {/* Reset Button */}
                 <Button title="Reset to Defaults" onPress={handleReset} color="red"/>
