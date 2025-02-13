@@ -39,12 +39,16 @@ export class SpeedSensor {
     constructor(updateInterval: number) {
         this._updateInterval = updateInterval;
         this._transitionConfig = deepClone(DEFAULT_TRANSITION_CONFIG);
+    }
 
-        // this.loadConfig().then(() => {
-        //     console.warn("Loaded transition config:", this._transitionConfig);
-        // }).catch((err) => {
-        //     console.error("Failed to load transition config:", err);
-        // });
+    // Initialize the config explicitly
+    public async init(): Promise<void> {
+        try {
+            await this.loadConfig();
+            console.warn("Loaded transition config:", this._transitionConfig);
+        } catch (err) {
+            console.error("Failed to load transition config:", err);
+        }
     }
 
     // Guardar en AsyncStorage

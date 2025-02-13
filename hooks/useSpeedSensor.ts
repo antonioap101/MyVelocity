@@ -10,14 +10,18 @@ export function useSpeedSensor() {
     const [speedState, setSpeedState] = useState<SpeedState>(SpeedState.STOPPED); // Estado de velocidad actual
     const speedSensor = useRef(new SpeedSensor(500)).current; // Instancia persistente
 
+    // Inicializar el sensor
+    useEffect(() => {
+        speedSensor.init().then(_ => console.log("Speed sensor initialized!"));
+    }, []);
+
     useEffect(() => {
         let subscription: any;
         const gravity = 9.81; // Aceleración de la gravedad en m/s²
 
         // Función para calcular la velocidad a partir del acelerómetro
-        // Función para calcular la velocidad a partir del acelerómetro
         const calculateSpeed = (acceleration: { timestamp: number; x: number; y: number; z: number }) => {
-            const { x, y, z } = acceleration;
+            const {x, y, z} = acceleration;
 
             // Convertimos las fuerzas g a m/s²
             const accelerationMs2 = {
