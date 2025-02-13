@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Button, ScrollView, StyleSheet, Text, TextInput, useColorScheme, View,} from "react-native";
+import {Pressable, ScrollView, StyleSheet, Text, TextInput, useColorScheme, View,} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useTranslation} from "react-i18next";
 import {Colors} from "@/assets/theme/Colors";
@@ -9,6 +9,7 @@ import {SpeedStateUtils} from "@/domain/speedStateUtils";
 import {SpeedState} from "@/domain/speedState";
 import {useSpeedSensor} from "@/hooks/useSpeedSensor";
 import RangeAdjuster from "@/components/RangeAdjuster";
+import Separator from "@/components/Separator";
 
 export default function Settings() {
     const {t} = useTranslation();
@@ -82,21 +83,37 @@ export default function Settings() {
                     onSelect={setSelectedIndex}
                 />
 
+                <Separator orientation={"horizontal"}/>
+                <View style={styles.section}>
+                    <Text style={styles.label}>Min Duration (ms)</Text>
+                    <TextInput
+                        style={styles.input}
+                        keyboardType="numeric"
+                        value={minDuration.toString()}
+                        onChangeText={handleMinDurationChange}
+                    />
+                </View>
                 <RangeAdjuster
                     label="Running Speed Range"
                     minLimit={0}
                     maxLimit={30}
-                    value={{ min: speedSensor.getTransitionConfigField(SpeedState.RUNNING, "minValue") || 0,
-                        max: speedSensor.getTransitionConfigField(SpeedState.RUNNING, "maxValue") || 30 }}
+                    value={{
+                        min: speedSensor.getTransitionConfigField(SpeedState.RUNNING, "minValue") || 0,
+                        max: speedSensor.getTransitionConfigField(SpeedState.RUNNING, "maxValue") || 30
+                    }}
                     onChange={(newRange) => {
                         speedSensor.setTransitionConfigField(SpeedState.RUNNING, "minValue", newRange.min);
                         speedSensor.setTransitionConfigField(SpeedState.RUNNING, "maxValue", newRange.max);
                     }}
                 />
 
-                {/* Reset Button */}
-                <Button title="Reset to Defaults" onPress={handleReset} color="red"/>
             </ScrollView>
+            {/* Reset Button */}
+            <View style={styles.buttonContainer}>
+                <Pressable onPress={handleReset} style={styles.button}>
+                    <Text style={styles.buttonText}>Reset to Defaults</Text>
+                </Pressable>
+            </View>
         </SafeAreaView>
     );
 }
@@ -118,9 +135,7 @@ export const createStyles = (colorScheme: "light" | "dark") =>
             textAlign: "center",
             color: colorScheme === "dark" ? Colors.dark.text : Colors.light.text,
         },
-        section: {
-            marginBottom: 20,
-        },
+        section: {},
         label: {
             fontSize: 16,
             marginBottom: 5,
@@ -135,4 +150,22 @@ export const createStyles = (colorScheme: "light" | "dark") =>
             backgroundColor: colorScheme === "dark" ? Colors.dark.background : "#fff",
             color: colorScheme === "dark" ? Colors.dark.text : Colors.light.text,
         },
+        buttonContainer: {
+            flex: 1,
+            justifyContent: 'flex-end',
+            marginBottom: 20,
+            padding: 20,
+        },
+        button: {
+            backgroundColor: colorScheme === "dark" ? Colors.dark.primary : Colors.light.primary,
+            borderRadius: 5,
+            marginBottom: 0,
+        },
+        buttonText: {
+            color: colorScheme === "dark" ? Colors.dark.text : Colors.dark.text,
+            textAlign: 'center',
+            padding: 10,
+            fontSize: 16,
+        }
+
     });

@@ -1,13 +1,9 @@
-import React, { useCallback, useState } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {StyleSheet, Text, TextInput, useColorScheme, View} from 'react-native';
 import RangeSlider from 'rn-range-slider';
+import {Colors} from "@/assets/theme/Colors";
 
-// Custom components for slider visuals
-const Thumb = () => <View style={styles.thumb} />;
-const Rail = () => <View style={styles.rail} />;
-const RailSelected = () => <View style={styles.railSelected} />;
-const Label = ({ text }: any) => <View style={styles.label}><Text>{text}</Text></View>;
-const Notch = () => <View style={styles.notch} />;
+
 
 interface RangeAdjusterProps {
     label: string;
@@ -19,6 +15,20 @@ interface RangeAdjusterProps {
 
 const RangeAdjuster: React.FC<RangeAdjusterProps> = ({ label, minLimit, maxLimit, value, onChange }) => {
     const [range, setRange] = useState(value);
+    const colorScheme = useColorScheme();
+    const [styles, setStyles] = useState(createStyles("light"));
+
+    useEffect(() => {
+        if (colorScheme) setStyles(createStyles(colorScheme));
+    }, [colorScheme]);
+    // Custom components for slider visuals
+    const Thumb = () => <View style={styles.thumb} />;
+    const Rail = () => <View style={styles.rail} />;
+    const RailSelected = () => <View style={styles.railSelected} />;
+    const Label = ({ text }: any) => <View style={styles.label}><Text>{text}</Text></View>;
+    const Notch = () => <View style={styles.notch} />;
+
+
 
     const handleValueChange = useCallback((low: number, high: number) => {
         const newRange = { min: low, max: high };
@@ -83,66 +93,73 @@ const RangeAdjuster: React.FC<RangeAdjusterProps> = ({ label, minLimit, maxLimit
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        paddingVertical: 10,
-        width: '100%',
-    },
-    labelText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        textAlign: 'center',
-    },
-    inputContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 10,
-    },
-    inputWrapper: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    inputLabel: {
-        fontSize: 14,
-        marginBottom: 5,
-    },
-    input: {
-        width: '80%',
-        borderBottomWidth: 1,
-        borderColor: '#ccc',
-        paddingVertical: 5,
-        textAlign: 'center',
-        fontSize: 16,
-    },
-    thumb: {
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        backgroundColor: 'blue',
-    },
-    rail: {
-        flex: 1,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: '#ccc',
-    },
-    railSelected: {
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: 'blue',
-    },
-    label: {
-        padding: 5,
-        borderRadius: 5,
-        backgroundColor: '#eee',
-    },
-    notch: {
-        width: 10,
-        height: 10,
-        backgroundColor: 'blue',
-        transform: [{ rotate: '45deg' }],
-    },
-});
+
+// Styles
+const createStyles = (colorScheme: "light" | "dark") =>
+    StyleSheet.create({
+        container: {
+            width: '100%',
+        },
+        labelText: {
+            fontSize: 16,
+            fontWeight: 'bold',
+            marginBottom: 10,
+            textAlign: 'center',
+            color: colorScheme === 'dark' ? Colors.dark.text : Colors.light.text,
+        },
+        inputContainer: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginTop: 10,
+        },
+        inputWrapper: {
+            flex: 1,
+            alignItems: 'center',
+        },
+        inputLabel: {
+            fontSize: 14,
+            marginBottom: 5,
+            color: colorScheme === 'dark' ? Colors.dark.text : Colors.light.text,
+        },
+        input: {
+            width: '80%',
+            borderBottomWidth: 1,
+            borderColor: colorScheme === 'dark' ? Colors.dark.border : Colors.light.border,
+            color: colorScheme === 'dark' ? Colors.dark.text : Colors.light.text,
+            paddingVertical: 5,
+            textAlign: 'center',
+            fontSize: 16,
+        },
+        thumb: {
+            width: 20,
+            height: 20,
+            borderRadius: 10,
+            backgroundColor: colorScheme === 'dark' ? Colors.dark.primary : Colors.light.primary,
+        },
+        rail: {
+            flex: 1,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: '#ccc',
+        },
+        railSelected: {
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: colorScheme === 'dark' ? Colors.dark.primary : Colors.light.primary,
+        },
+        label: {
+            padding: 5,
+            borderRadius: 5,
+            backgroundColor: '#eee',
+        },
+        notch: {
+            width: 10,
+            height: 10,
+            backgroundColor: colorScheme === 'dark' ? Colors.dark.background : Colors.light.background,
+            transform: [{ rotate: '45deg' }],
+        },
+    });
+
+
 
 export default RangeAdjuster;
