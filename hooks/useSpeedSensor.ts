@@ -1,59 +1,79 @@
-// Hook personalizado para manejar el sensor de velocidad
-import {useEffect, useRef, useState} from "react";
-import {Accelerometer} from "expo-sensors";
-import {SpeedSensor} from "@/domain/speedSensor";
-import {SpeedState} from "@/domain/speedState";
+import { useEffect, useRef, useState } from "react";
+import { Accelerometer } from "expo-sensors";
+import { SpeedSensor } from "@/domain/speedSensor";
+import { SpeedState } from "@/domain/speedState";
 
 // Hook personalizado para manejar el sensor de velocidad
 export function useSpeedSensor() {
-    const [speed, setSpeed] = useState(0); // Velocidad actual
-    const [speedState, setSpeedState] = useState<SpeedState>(SpeedState.STOPPED); // Estado de velocidad actual
-    const speedSensor = useRef(new SpeedSensor(500)).current; // Instancia persistente
+    const [speed, setSpeed] = useState(0); // Velocidad en km/h
+    const [speedState, setSpeedState] = useState<SpeedState>(SpeedState.STOPPED);
+    const speedSensor = useRef(new SpeedSensor(500)).current;
+
+    // Variables internas para integración
+    const velocityRef = useRef(0);
+    const lastTimestampRef = useRef<number | null>(null);
+    const gravity = 9.807; // m/s²
 
     // Inicializar el sensor
     useEffect(() => {
-        speedSensor.init().then(_ => console.log("Speed sensor initialized!"));
+        speedSensor.init().then(() => console.log("Speed sensor initialized!"));
     }, []);
 
     useEffect(() => {
         let subscription: any;
-        const gravity = 9.81; // Aceleración de la gravedad en m/s²
-
-        // Función para calcular la velocidad a partir del acelerómetro
+        /** Integrates the acceleration data to estimate the speed
+         * @param acceleration - Acceleration data from the sensor (in g values, not m/s²)
+         *
+         * The relation between the acceleration in g and m/s² is: 1 g = 9.81 m/s²
+         *
+         * The relation between acceleration and velocity is: v(t) ~= v(t-1) + a(t) * Δt, following Euler's integration method
+         *  - Original integration formula: v(t) = v(0) + INT(a(t) * dt){0,t}
+         * The speed is then converted to km/h
+         */
         const calculateSpeed = (acceleration: { timestamp: number; x: number; y: number; z: number }) => {
-            const {x, y, z} = acceleration;
+            const { x, y, z, timestamp } = acceleration;
 
-            // Convertimos las fuerzas g a m/s²
-            const accelerationMs2 = {
-                x: x * gravity,
-                y: y * gravity,
-                z: z * gravity,
-            };
+            const currentTime = timestamp * 1000;
+            if (lastTimestampRef.current === null) {
+                lastTimestampRef.current = currentTime;
+                return;
+            }
 
-            // Restamos la gravedad del eje vertical (asumimos que el eje Y es el vertical)
-            const correctedAcceleration = {
-                x: accelerationMs2.x,
-                y: accelerationMs2.y - gravity, // Eliminar la componente de la gravedad
-                z: accelerationMs2.z,
-            };
+            // Tiempo transcurrido en segundos desde la última lectura
+            const deltaTime = (currentTime - lastTimestampRef.current) / 1000;
+            lastTimestampRef.current = currentTime;
 
-            // Calculamos la magnitud de la aceleración neta en m/s²
-            const instantAcceleration = Math.sqrt(
-                correctedAcceleration.x ** 2 +
-                correctedAcceleration.y ** 2 +
-                correctedAcceleration.z ** 2
-            );
+            // Calculamos la aceleración neta en m/s² (corrigiendo la gravedad)
+            const accMs2 = Math.sqrt((x * gravity) ** 2 + (y * gravity) ** 2 + (z * gravity) ** 2) - gravity;
 
-            // console.log("Corrected acceleration (m/s²):", correctedAcceleration, '|', "Instant acceleration magnitude (m/s²):", instantAcceleration, '|', "Timestamp:", acceleration.timestamp);
+            // We apply a noise threshold to avoid small variations in the acceleration
+            const noiseThreshold = 0.001; // m/s²
+            const effectiveAcceleration = Math.abs(accMs2) > noiseThreshold ? accMs2 : 0;
 
-            setSpeed(instantAcceleration); // Actualizamos la aceleración neta (velocidad aproximada)
 
-            // Aplicar la lógica de transición y actualizar el estado
-            const newState = speedSensor.handleTransition(instantAcceleration, acceleration.timestamp);
+            // Integración para estimar la velocidad
+            velocityRef.current += effectiveAcceleration * deltaTime;
+            console.warn("Effective acceleration (m/s²):", effectiveAcceleration,
+                " | Δt:", deltaTime,
+                " | Adding to velocity:", effectiveAcceleration*deltaTime,
+                " => Current velocity (m/s):", velocityRef.current);
+
+            // Evitar velocidades negativas (podría ser ruido)
+            if (velocityRef.current < 0) velocityRef.current = 0;
+
+            // Convertimos a km/h
+            const speedKmH = velocityRef.current * 3.6;
+
+            setSpeed(speedKmH);
+
+            // Actualizar el estado del sensor
+            const newState = speedSensor.handleTransition(speedKmH, timestamp);
             setSpeedState(newState);
+
+            console.log(`Speed (km/h): ${speedKmH.toFixed(2)} | Acc: ${accMs2.toFixed(2)} m/s² | Δt: ${deltaTime.toFixed(3)}s`);
         };
-        // Suscribirse al acelerómetro
-        Accelerometer.setUpdateInterval(speedSensor.updateInterval); // Cada 500 ms
+
+        Accelerometer.setUpdateInterval(speedSensor.updateInterval);
         subscription = Accelerometer.addListener(calculateSpeed);
 
         return () => {
@@ -61,5 +81,5 @@ export function useSpeedSensor() {
         };
     }, []);
 
-    return {speed, speedSensor, speedState};
+    return { speed, speedSensor, speedState };
 }

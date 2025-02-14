@@ -29,7 +29,7 @@ export default function Index() {
                 <ThemedText style={styles.title}>{capitalize(t('title.sensor_speed'))}</ThemedText>
 
                 <ThemedText style={styles.speedLabel}>{capitalize(t('label.current_speed'))}:</ThemedText>
-                <ThemedText style={styles.speedValue}>{speed.toFixed(2)} m/s</ThemedText>
+                <ThemedText style={styles.speedValue}>{speed.toFixed(2)} km/h</ThemedText>
 
                 <ThemedText style={styles.stateLabel}>{capitalize(t('label.speed_state'))}:</ThemedText>
                 <View style={styles.stateContainer}>
