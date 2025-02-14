@@ -76,6 +76,7 @@ export class SpeedSensor {
     public handleTransition(newSpeed: number, at: number): SpeedState {
         const now = at * 1000; // Convert seconds to milliseconds
         this._sensorStatus.currentSpeed = newSpeed;
+        console.warn("Current speed:", newSpeed, " | Current state:", this._speedState.current);
 
         // Check the current speed against state intervals
         for (const [state, interval] of Object.entries(this._transitionConfig)) {
@@ -89,6 +90,7 @@ export class SpeedSensor {
 
                 // Check if the new state has been stable long enough
                 const elapsedMs = now - this._sensorStatus.lastTimestamp;
+                console.log("Elapsed time (ms):", elapsedMs, " | Required duration:", interval.minDurationMs);
                 if (elapsedMs >= interval.minDurationMs) {
                     // Update the state if it has remained stable for the required duration
                     this._speedState.last = state as SpeedState;
@@ -98,7 +100,7 @@ export class SpeedSensor {
                 break;
             }
         }
-        // console.log("Speed state:", this._speedState.current, '|', "Elapsed time (ms):", now - this._sensorStatus.lastTimestamp);
+        console.log("Afterwards Speed state:", this._speedState.current, '|', "Elapsed time (ms):", now - this._sensorStatus.lastTimestamp);
         return this._speedState.current; // Return the last confirmed state if transition not complete
     }
 
