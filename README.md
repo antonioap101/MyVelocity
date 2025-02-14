@@ -1,4 +1,8 @@
-# 📱 MyVelocity
+<h1 align="center" style="margin-bottom: 0;">
+    <img src="assets/images/MyVelocity.svg" width="150">
+</h1>
+<h2 align="center" style="margin-top: 0;"><b>MyVelocity</b></h2>
+<h4 align="center" style="margin-top: 0;">A lightweight application to measure your velocity</h4>
 
 **MyVelocity** is a mobile app built with React Native that detects the current speed state of the device using the accelerometer. The app classifies speed states and provides real-time updates through a clean and simple interface.
 
