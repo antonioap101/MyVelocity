@@ -8,6 +8,7 @@ import {ApplicationProvider} from "@ui-kitten/components";
 import * as eva from '@eva-design/eva';
 import {ErrorWarningProvider} from "@/hooks/errors/useErrors";
 import {ErrorWarningPopup} from "@/components/ErrorWarningPopup";
+import {StatusBar} from "expo-status-bar";
 
 export default function RootLayout() {
     const colorScheme = useColorScheme();
@@ -32,6 +33,7 @@ export default function RootLayout() {
         <ApplicationProvider {...eva} theme={colorScheme === 'dark' ? eva.dark : eva.light}>
             <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
                 <ErrorWarningProvider>
+                    <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'}/>
                     <ErrorWarningPopup />
                     <Stack screenOptions={{headerShown: false}}>
                         <Stack.Screen name="(tabs)" options={{
