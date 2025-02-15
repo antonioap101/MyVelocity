@@ -15,6 +15,10 @@ import {useTranslation} from "react-i18next";
 import {capitalize} from "@/utils/capitalize";
 
 export class SpeedStateUtils {
+    public static readonly MIN_SPEED = 0;
+    public static readonly MAX_SPEED = 1000;
+    public static readonly DEFAULT_MIN_DURATION = 500;
+
     static getPreviousState(speedState: SpeedState): SpeedState {
         switch (speedState) {
             case SpeedState.WALKING:

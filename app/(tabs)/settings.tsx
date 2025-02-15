@@ -42,25 +42,25 @@ export default function Settings() {
     const [minValue, setMinValue] = useState(0);
     const [maxValue, setMaxValue] = useState(10);
 
-    const [minLimit, setMinLimit] = useState(0);
-    const [maxLimit, setMaxLimit] = useState(170);
+    const [minLimit, setMinLimit] = useState(SpeedStateUtils.MIN_SPEED);
+    const [maxLimit, setMaxLimit] = useState(SpeedStateUtils.MAX_SPEED);
 
     function getPreviousStateMaxValue() {
         const prevState = SpeedStateUtils.getPreviousState(selectedState);
-        if (prevState === SpeedState.NONE) return 0;
-        return speedSensor.getTransitionConfigField(prevState, "maxValue") || 0;
+        if (prevState === SpeedState.NONE) return SpeedStateUtils.MIN_SPEED;
+        return speedSensor.getTransitionConfigField(prevState, "maxValue") || SpeedStateUtils.MIN_SPEED;
     }
 
     function getNextStateMinValue() {
         const nextState = SpeedStateUtils.getNextState(selectedState);
-        if (nextState === SpeedState.NONE) return 0;
-        return speedSensor.getTransitionConfigField(nextState, "minValue") || Infinity;
+        if (nextState === SpeedState.NONE) return SpeedStateUtils.MAX_SPEED;
+        return speedSensor.getTransitionConfigField(nextState, "minValue") || SpeedStateUtils.MAX_SPEED;
     }
 
     function loadSettings() {
-        const minDur = speedSensor.getTransitionConfigField(selectedState, "minDurationMs") || 500;
-        const minVal = speedSensor.getTransitionConfigField(selectedState, "minValue") || 0;
-        const maxVal = speedSensor.getTransitionConfigField(selectedState, "maxValue") || 10;
+        const minDur = speedSensor.getTransitionConfigField(selectedState, "minDurationMs");
+        const minVal = speedSensor.getTransitionConfigField(selectedState, "minValue");
+        const maxVal = speedSensor.getTransitionConfigField(selectedState, "maxValue");
         const maxLimit = getNextStateMinValue();
         const minLimit = getPreviousStateMaxValue();
 

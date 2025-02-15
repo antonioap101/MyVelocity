@@ -66,7 +66,7 @@ const RangeAdjuster: React.FC<RangeAdjusterProps> = ({ label, minLimit, maxLimit
 
             <View style={styles.inputContainer}>
                 <View style={styles.inputWrapper}>
-                    <Text style={styles.inputLabel}>Min</Text>
+                    <Text style={styles.inputLabel}>Min (km/h)</Text>
                     <TextInput
                         style={styles.input}
                         keyboardType="numeric"
@@ -76,7 +76,7 @@ const RangeAdjuster: React.FC<RangeAdjusterProps> = ({ label, minLimit, maxLimit
                 </View>
 
                 <View style={styles.inputWrapper}>
-                    <Text style={styles.inputLabel}>Max</Text>
+                    <Text style={styles.inputLabel}>Max (km/h)</Text>
                     <TextInput
                         style={styles.input}
                         keyboardType="numeric"

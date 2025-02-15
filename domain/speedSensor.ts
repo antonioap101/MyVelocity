@@ -13,7 +13,6 @@ export interface Interval {
 // Define SpeedTransitionConfig
 export type SpeedTransitionConfig = {
     [state in SpeedState]: Interval;
-
 };
 
 // Define a global constant for the default config
@@ -64,12 +63,39 @@ export class SpeedSensor {
         try {
             const storedConfig = await AsyncStorage.getItem("speedSensorConfig");
             if (storedConfig) {
-                this._transitionConfig = JSON.parse(storedConfig);
+                const storedConfigParsed = JSON.parse(storedConfig);
+                if (!this.validateConfig(storedConfigParsed)) {
+                    await this.reset();
+                    throw new Error("Invalid transition config loaded from storage!");
+                }
+                this._transitionConfig = storedConfigParsed;
                 console.log("Loaded transition config from storage:", this._transitionConfig);
             }
         } catch (error) {
             errorEmitter.emitError("Failed to load speed sensor configuration!");
         }
+    }
+
+    private validateConfig(config: SpeedTransitionConfig): boolean {
+        for (const [state, interval] of Object.entries(config).filter(([state]) => state !== SpeedState.NONE)) {
+            if (interval.minValue == undefined || interval.maxValue == undefined || interval.minDurationMs == undefined) {
+                console.error("Invalid interval values for state:", state, " | Interval:", interval);
+                return false;
+            }
+            if (!this.isValidTransitionConfigField(state as SpeedState, "minValue", interval.minValue)) {
+                console.error("Invalid minValue for state:", state, " | Interval:", interval);
+                return false;
+            }
+            if (!this.isValidTransitionConfigField(state as SpeedState, "maxValue", interval.maxValue)) {
+                console.error("Invalid maxValue for state:", state, " | Interval:", interval);
+                return false;
+            }
+            if (!this.isValidTransitionConfigField(state as SpeedState, "minDurationMs", interval.minDurationMs)) {
+                console.error("Invalid minDurationMs for state:", state, " | Interval:", interval);
+                return false;
+            }
+        }
+        return true;
     }
 
     // Method to update the speed and process state transitions
